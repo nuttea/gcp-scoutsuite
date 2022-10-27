@@ -1,0 +1,11 @@
+steps:
+  - name: 'asia-southeast1-docker.pkg.dev/nuttee-lab-00/scoutsuite-repo/scoutsuite'
+    id: Clone Deployment Repo
+    entrypoint: 'bash'
+    args: ['-c', 'scout gcp --no-browser --report-dir /reports -u --all-projects']
+    volumes:
+      - name: reports
+        path: /reports
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: Clone Deployment Repo
+    args: ['cp', '-r', '/reports', 'gs://nuttee-lab-00-scoutsuite/']
