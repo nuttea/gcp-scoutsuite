@@ -65,3 +65,17 @@ resource "google_artifact_registry_repository" "scoutsuite-repo" {
   description   = "scoutsuite docker repository"
   format        = "DOCKER"
 }
+
+module "gcloud_build_image" {
+  source  = "terraform-google-modules/gcloud/google"
+  version = "~> 3.1"
+
+  platform = "linux"
+
+  create_cmd_entrypoint  = "gcloud"
+  create_cmd_body        = "builds submit --tag asia-southeast1-docker.pkg.dev/${var.project_id}/scoutsuite-repo/scoutsuite --project ${var.project_id}"
+
+  module_depends_on = [
+    google_artifact_registry_repository.scoutsuite-repo
+  ]
+}
