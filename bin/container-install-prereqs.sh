@@ -17,23 +17,23 @@ echo -e "\n\nSoftware Pre-reqs Installation Starting...\n\n"
 # =====================================
 apt-get update > /dev/null 2>&1
 apt-get install -qy \
-  apt-transport-https \
-  apt-utils \
-  ca-certificates \
-  cmake \
+#  apt-transport-https \
+#  apt-utils \
+#  ca-certificates \
+#  cmake \
   curl \
-  dialog \
-  gnupg \
-  groff \
-  jq \
-  less \
-  lsb-release \
-  nano \
+#  dialog \
+#  gnupg \
+#  groff \
+#  jq \
+#  less \
+#  lsb-release \
+#  nano \
   python3 \
   python3-pip \
   tzdata \
   unzip \
-  vim \
+#  vim \
   virtualenv \
   virtualenvwrapper \
   wget

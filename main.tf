@@ -23,7 +23,6 @@ module "project-services" {
   activate_apis = [
     "iam.googleapis.com", 
     "cloudresourcemanager.googleapis.com",
-    "eventarc.googleapis.com",
     "storage.googleapis.com",
     "containerregistry.googleapis.com",
     "artifactregistry.googleapis.com",
@@ -131,7 +130,7 @@ resource "google_cloudbuild_trigger" "build-trigger" {
 
   build {
     step {
-      name = "asia-southeast1-docker.pkg.dev/nuttee-lab-00/scoutsuite-repo/scoutsuite"
+      name = "asia-southeast1-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.scoutsuite-repo.name}/scoutsuite"
       entrypoint = "/bin/bash"
       args = ["-c", 
 <<-EOF
@@ -146,7 +145,7 @@ EOF
     }
     step {
       name = "gcr.io/cloud-builders/gsutil"
-      args = ["cp", "-r", "/reports", "gs://nuttee-lab-00-scoutsuite/"]
+      args = ["cp", "-r", "/reports", "gs://${google_storage_bucket.bucket.name}/"]
       volumes {
         name = "reports"
         path = "/reports"

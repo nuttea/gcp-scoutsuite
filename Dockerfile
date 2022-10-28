@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM gcr.io/google.com/cloudsdktool/google-cloud-cli:slim
 
 LABEL maintainer="Jason Ross <jason.ross@nccgroup.com>"
 
@@ -6,7 +6,7 @@ LABEL maintainer="Jason Ross <jason.ross@nccgroup.com>"
 ADD bin /root/bin
 
 # Install required software
-RUN ["/bin/bash", "-c", "/root/bin/container-install-prereqs.sh"]
+#RUN ["/bin/bash", "-c", "/root/bin/container-install-prereqs.sh"]
 
 # Install AWS CLI
 #RUN ["/bin/bash", "-c", "/root/bin/container-install-aws2.sh"]
@@ -15,7 +15,7 @@ RUN ["/bin/bash", "-c", "/root/bin/container-install-prereqs.sh"]
 #RUN ["/bin/bash", "-c", "/root/bin/container-install-azure.sh"]
 
 # Install gCloud SDK
-RUN ["/bin/bash", "-c", "/root/bin/container-install-gcp.sh"]
+#RUN ["/bin/bash", "-c", "/root/bin/container-install-gcp.sh"]
 
 # Install ScoutSuite
 RUN ["/bin/bash", "-c", "/root/bin/container-install-scoutsuite.sh"]
