@@ -125,7 +125,7 @@ resource "google_cloudbuild_trigger" "build-trigger" {
   service_account = google_service_account.scoutsuite_service_account.id
 
   trigger_template {
-    branch_name = "master"
+    branch_name = "main"
     repo_name   = "dummy"
   }
 
