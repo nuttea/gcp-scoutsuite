@@ -12,7 +12,7 @@ cd gcp-scoutsuite
 export WORKING_DIR=$(pwd)
 ```
 
-Set PROJECT_ID, REGION
+Set PROJECT_ID, REGION, and GCP Domain
 
 ```sh
 REGION=asia-southeast1
@@ -20,6 +20,7 @@ REGION=asia-southeast1
 echo "Get the project id"
 gcloud config set project "<YOUR-PROJECT_ID>"
 export PROJECT_ID=$(gcloud config get-value project)
+export GCP_DOMAIN=<YOUR_GCP_ORG_DOMAIN>
 ```
 
 ## Terraform init, plan and apply
@@ -27,7 +28,7 @@ export PROJECT_ID=$(gcloud config get-value project)
 Use Terraform to provision the Scout Suite container and generate reports
 
 ```
-export TF_VAR_gcp_domain=<YOUR_GCP_ORG_DOMAIN>
+export TF_VAR_gcp_domain=${GCP_DOMAIN}
 export TF_VAR_project_id=${PROJECT_ID}
 
 cd ${WORKING_DIR}
@@ -35,15 +36,6 @@ terraform init
 terraform plan
 terraform apply
 ```
-
-## Generate a Scout Suite Report
-
-Run Scout Suite to generate a report by maunally trigger cloud build trigger.
-
-- Open the Triggers page in the Google Cloud console.
-- Open the triggers page
-- Locate your trigger name "scoutsuite-trigger" in the list.
-- Click Run trigger.
 
 ## Get the Scout Suite Report
 

@@ -1,0 +1,16 @@
+steps:
+  - name: 'docker.io/nuttea/scoutsuite:0.3.2'
+    id: Generate a report
+    entrypoint: 'bash'
+    args: ['-c', 'scout gcp --no-browser --report-dir /reports -u --all-projects']
+    volumes:
+      - name: reports
+        path: /reports
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: Clone Deployment Repo
+    args: ['cp', '-r', '/reports', 'gs://${_SCOUTSUITE_BUCKET}/']
+    volumes:
+      - name: reports
+        path: /reports
+substitutions:
+  _SCOUTSUITE_BUCKET: 'projectid_scoutsuite'

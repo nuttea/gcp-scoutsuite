@@ -14,7 +14,7 @@ data "google_organization" "org" {
   domain = var.gcp_domain
 }
 
-module "project-services" {
+module "project_services" {
   source  = "terraform-google-modules/project-factory/google//modules/project_services"
   version = "~> 13.0"
 
@@ -25,18 +25,11 @@ module "project-services" {
     "cloudresourcemanager.googleapis.com",
     "storage.googleapis.com",
     "containerregistry.googleapis.com",
-    "artifactregistry.googleapis.com",
-    "cloudbuild.googleapis.com",
-    "sourcerepo.googleapis.com"
+    "cloudbuild.googleapis.com"
   ]
 
   disable_dependent_services = false
   disable_services_on_destroy = false
-}
-
-resource "time_sleep" "wait_project_services" {
-  depends_on      = [module.project-services]
-  create_duration = "60s"
 }
 
 # Pre-requiste to have a GCS Bucket name with format "<project-id>-scoutsuite"
@@ -55,15 +48,11 @@ resource "google_storage_bucket_iam_binding" "binding" {
   ]
 }
 
-# Create a service account
-resource "google_service_account" "scoutsuite_service_account" {
-  account_id   = "${var.scoutsuite_sa}-sa"
-  display_name = "ScoutSuite Service Account"
-}
+# Add IAM Permission to cloudbuild default service account
 
-resource "google_organization_iam_member" "scoutsuite_service_account_roles" {
+resource "google_organization_iam_member" "cloudbuild_service_account_roles" {
   org_id  = data.google_organization.org.org_id
-  member   = format("serviceAccount:%s", google_service_account.scoutsuite_service_account.email)
+  member   = format("serviceAccount:%s", "${data.google_project.project.number}@cloudbuild.gserviceaccount.com")
   for_each = toset([
     "roles/viewer",
     "roles/iam.securityReviewer",
@@ -72,48 +61,17 @@ resource "google_organization_iam_member" "scoutsuite_service_account_roles" {
     "roles/storage.objectAdmin"
   ])
   role     = each.key
-}
-
-resource "google_project_iam_member" "gcp_sa_cloudbuild_project_roles" {
-  project  = var.project_id
-  member   = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
-  for_each = toset([
-    "roles/secretmanager.secretAccessor"
-  ])
-  role     = each.key
-}
-
-resource "time_sleep" "wait_scoutsuite_sa_iam" {
-  depends_on      = [google_organization_iam_member.scoutsuite_service_account_roles]
-  create_duration = "60s"
-}
-
-# Dummay Cloud Source Repository for Cloud Build
-resource "google_sourcerepo_repository" "dummy_repo" {
-  name = "dummy"
-}
-
-module "gcloud_init_dummy_repo" {
-  source  = "terraform-google-modules/gcloud/google"
-  version = "~> 3.1"
-
-  platform = "linux"
-
-  create_cmd_entrypoint  = "gcloud"
-  create_cmd_body        = "source repos clone dummy --project=${var.project_id} && cd dummy && git checkout -b main && touch README.md && git add . && git commit -m 'init' && git push -u origin main && cd .. && rm -Rf dummy"
-
-  module_depends_on = [
-    google_sourcerepo_repository.dummy_repo
+  depends_on = [
+    module.project_services
   ]
 }
 
-# Create a Docker Image Registry on GCP Artifact Repository
-resource "google_artifact_registry_repository" "scoutsuite-repo" {
-  location      = "${var.region}"
-  repository_id = "scoutsuite-repo"
-  description   = "scoutsuite docker repository"
-  format        = "DOCKER"
+resource "time_sleep" "wait_cloudbuild_sa_iam" {
+  depends_on      = [google_organization_iam_member.cloudbuild_service_account_roles]
+  create_duration = "60s"
 }
+
+# Run the Cloud Build Submit for Scout Suite report generation
 
 module "gcloud_build_image" {
   source  = "terraform-google-modules/gcloud/google"
@@ -122,49 +80,9 @@ module "gcloud_build_image" {
   platform = "linux"
 
   create_cmd_entrypoint  = "gcloud"
-  create_cmd_body        = "builds submit --tag ${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.scoutsuite-repo.name}/scoutsuite --project ${var.project_id} --timeout=6000s"
+  create_cmd_body        = "builds submit --config=cloudbuild.yaml --substitutions=_SCOUTSUITE_BUCKET='${google_storage_bucket.bucket.name}' --project ${var.project_id} --timeout=6000s"
 
   module_depends_on = [
-    google_artifact_registry_repository.scoutsuite-repo
+    time_sleep.wait_cloudbuild_sa_iam
   ]
-}
-
-resource "google_cloudbuild_trigger" "build-trigger" {
-  name = "scoutsuite-trigger"
-  location = "global"
-  service_account = google_service_account.scoutsuite_service_account.id
-
-  trigger_template {
-    branch_name = "main"
-    repo_name   = "dummy"
-  }
-
-  build {
-    step {
-      name = "asia-southeast1-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.scoutsuite-repo.name}/scoutsuite"
-      entrypoint = "/bin/bash"
-      args = ["-c", 
-<<-EOF
-  source /root/scoutsuite/bin/activate
-  scout gcp --no-browser --report-dir /reports -u --all-projects
-EOF
-      ]
-      volumes {
-        name = "reports"
-        path = "/reports"
-      }
-    }
-    step {
-      name = "gcr.io/cloud-builders/gsutil"
-      args = ["cp", "-r", "/reports", "gs://${google_storage_bucket.bucket.name}/"]
-      volumes {
-        name = "reports"
-        path = "/reports"
-      }
-    }
-    options {
-      logging = "CLOUD_LOGGING_ONLY"
-    }
-    timeout = "6000s"
-  }
 }
