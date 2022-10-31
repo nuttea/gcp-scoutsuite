@@ -34,11 +34,17 @@ module "project-services" {
   disable_services_on_destroy = false
 }
 
+resource "time_sleep" "wait_project_services" {
+  depends_on      = [module.project-services]
+  create_duration = "60s"
+}
+
 # Pre-requiste to have a GCS Bucket name with format "<project-id>-scoutsuite"
 resource "google_storage_bucket" "bucket" {
   name     = local.scoutsuite_bucket  # Every bucket name must be globally unique
   location = "${var.region}"
   uniform_bucket_level_access = true
+  force_destroy = true
 }
 
 resource "google_storage_bucket_iam_binding" "binding" {
@@ -77,6 +83,11 @@ resource "google_project_iam_member" "gcp_sa_cloudbuild_project_roles" {
   role     = each.key
 }
 
+resource "time_sleep" "wait_scoutsuite_sa_iam" {
+  depends_on      = [google_organization_iam_member.scoutsuite_service_account_roles]
+  create_duration = "60s"
+}
+
 # Dummay Cloud Source Repository for Cloud Build
 resource "google_sourcerepo_repository" "dummy_repo" {
   name = "dummy"
@@ -111,7 +122,7 @@ module "gcloud_build_image" {
   platform = "linux"
 
   create_cmd_entrypoint  = "gcloud"
-  create_cmd_body        = "builds submit --tag asia-southeast1-docker.pkg.dev/${var.project_id}/scoutsuite-repo/scoutsuite --project ${var.project_id}"
+  create_cmd_body        = "builds submit --tag ${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.scoutsuite-repo.name}/scoutsuite --project ${var.project_id} --timeout=6000s"
 
   module_depends_on = [
     google_artifact_registry_repository.scoutsuite-repo

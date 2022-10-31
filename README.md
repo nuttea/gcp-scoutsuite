@@ -36,6 +36,30 @@ terraform plan
 terraform apply
 ```
 
+## Generate a Scout Suite Report
+
+Run Scout Suite to generate a report by maunally trigger cloud build trigger.
+
+- Open the Triggers page in the Google Cloud console.
+- Open the triggers page
+- Locate your trigger name "scoutsuite-trigger" in the list.
+- Click Run trigger.
+
+## Get the Scout Suite Report
+
+The result report is put in a GCS Bucket. Go to your bucket and open a public access url for `gcp-user-account.html`
+
+- Open the Cloud Storage page in the Google Cloud console.
+- Open the GCS Bucket provisioned by Terraform (ex. "<YOUR PROJECT ID>-scoutsuite")
+- Go to folder `reports` and copy public URL of `gcp-user-account.html` and open in your web browser.
+
+## Clean up
+
+Delete all provisioned resource by using Terraform destroy
+
+```
+terraform destroy
+```
 
 -------
 

@@ -15,13 +15,17 @@ echo -e "\n\nSoftware Pre-reqs Installation Starting...\n\n"
 # =====================================
 # set up the pre-reqs
 # =====================================
-apt-get update > /dev/null 2>&1
-apt-get install -qy \
+apk update
+apk add g++ gcc musl-dev python3-dev libffi-dev openssl-dev linux-headers
+apk add py3-pip py3-wheel
+
+#apt-get update > /dev/null 2>&1
+#apt-get install -qy \
 #  apt-transport-https \
 #  apt-utils \
 #  ca-certificates \
 #  cmake \
-  curl \
+#  curl \
 #  dialog \
 #  gnupg \
 #  groff \
@@ -29,13 +33,13 @@ apt-get install -qy \
 #  less \
 #  lsb-release \
 #  nano \
-  python3 \
-  python3-pip \
-  tzdata \
-  unzip \
+#  python3 \
+#  python3-pip \
+#  tzdata \
+#  unzip \
 #  vim \
-  virtualenv \
-  virtualenvwrapper \
-  wget
+#  virtualenv \
+#  virtualenvwrapper \
+#  wget
 
 echo -e "\n\nSoftware Pre-reqs Installation Complete!\n\n"
