@@ -1,13 +1,13 @@
 steps:
   - name: 'gcr.io/google.com/cloudsdktool/google-cloud-cli:slim'
-    id: Generate a report
+    id: Install Scout Suite and Generate a report
     entrypoint: 'bash'
     args: ['-c', './bin/container-install-run-scoutsuite.sh']
     volumes:
       - name: reports
         path: /reports
   - name: 'gcr.io/cloud-builders/gsutil'
-    id: Clone Deployment Repo
+    id: Copy reports to GCS
     args: ['cp', '-r', '/reports', 'gs://${_SCOUTSUITE_BUCKET}/']
     volumes:
       - name: reports
