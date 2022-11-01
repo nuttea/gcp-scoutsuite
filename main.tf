@@ -86,3 +86,8 @@ module "gcloud_build_image" {
     time_sleep.wait_cloudbuild_sa_iam
   ]
 }
+
+output "scoutsuite_report_url" {
+  value       = "https://storage.googleapis.com/${google_storage_bucket.bucket.name}/reports/gcp-user-account.html"
+  description = "The generated Scout Suite report url in GCS bucket."
+}

@@ -15,12 +15,11 @@ export WORKING_DIR=$(pwd)
 Set PROJECT_ID, REGION, and GCP Domain
 
 ```sh
-REGION=asia-southeast1
-
-echo "Get the project id"
-gcloud config set project "<YOUR-PROJECT_ID>"
-export PROJECT_ID=$(gcloud config get-value project)
+export REGION=asia-southeast1
+export PROJECT_ID=<YOUR-PROJECT_ID>
 export GCP_DOMAIN=<YOUR_GCP_ORG_DOMAIN>
+
+gcloud config set project "${PROJECT_ID}"
 ```
 
 ## Terraform init, plan and apply
@@ -41,9 +40,13 @@ terraform apply
 
 The result report is put in a GCS Bucket. Go to your bucket and open a public access url for `gcp-user-account.html`
 
-- Open the Cloud Storage page in the Google Cloud console.
-- Open the GCS Bucket provisioned by Terraform (ex. "<YOUR PROJECT ID>-scoutsuite")
-- Go to folder `reports` and copy public URL of `gcp-user-account.html` and open in your web browser.
+```bash
+terraform output -raw scoutsuite_report_url
+```
+
+```bash
+echo "Open a report at URL: https://storage.googleapis.com/${PROJECT_ID}-scoutsuite/reports/gcp-user-account.html"
+```
 
 ## Clean up
 
