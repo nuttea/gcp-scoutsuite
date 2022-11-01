@@ -68,7 +68,7 @@ resource "google_organization_iam_member" "cloudbuild_service_account_roles" {
 
 resource "time_sleep" "wait_cloudbuild_sa_iam" {
   depends_on      = [google_organization_iam_member.cloudbuild_service_account_roles]
-  create_duration = "60s"
+  create_duration = "30s"
 }
 
 # Run the Cloud Build Submit for Scout Suite report generation
@@ -80,7 +80,7 @@ module "gcloud_build_image" {
   platform = "linux"
 
   create_cmd_entrypoint  = "gcloud"
-  create_cmd_body        = "builds submit --config=cloudbuild.yaml --substitutions=_SCOUTSUITE_BUCKET='${google_storage_bucket.bucket.name}' --project ${var.project_id} --timeout=6000s"
+  create_cmd_body        = "builds submit build/ --config=build/cloudbuild.yaml --substitutions=_SCOUTSUITE_BUCKET='${google_storage_bucket.bucket.name}' --project ${var.project_id} --timeout=6000s"
 
   module_depends_on = [
     time_sleep.wait_cloudbuild_sa_iam

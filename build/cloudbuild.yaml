@@ -1,8 +1,8 @@
 steps:
-  - name: 'docker.io/nuttea/scoutsuite:0.3.2'
+  - name: 'gcr.io/google.com/cloudsdktool/google-cloud-cli:slim'
     id: Generate a report
     entrypoint: 'bash'
-    args: ['-c', 'scout gcp --no-browser --report-dir /reports -u --all-projects']
+    args: ['-c', './bin/container-install-run-scoutsuite.sh']
     volumes:
       - name: reports
         path: /reports
