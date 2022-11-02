@@ -54,9 +54,13 @@ resource "google_organization_iam_member" "scoutsuite_service_account_roles" {
     "roles/iam.securityReviewer",
     "roles/logging.viewer",
     "roles/logging.logWriter",
-    "roles/storage.objects.create"
+    "roles/storage.admin"
   ])
   role     = each.key
+  condition {
+    title       = "Restrict to Scoutsuite bucket"
+    expression  = "resource.type == \"storage.googleapis.com/Bucket\" && resource.name.is(\"${var.project_id}-scoutsuite\")"
+  }
 }
 
 resource "time_sleep" "wait_cloudbuild_sa_iam" {
