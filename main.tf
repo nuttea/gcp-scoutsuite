@@ -59,7 +59,7 @@ resource "google_organization_iam_member" "scoutsuite_service_account_roles" {
   role     = each.key
   condition {
     title       = "Restrict to Scoutsuite bucket"
-    expression  = "resource.type == \"storage.googleapis.com/Bucket\" && resource.name.is(\"${var.project_id}-scoutsuite\")"
+    expression  = "resource.type == \"storage.googleapis.com/Bucket\" && resource.name == (\"${var.project_id}-scoutsuite\")"
   }
 }
 
