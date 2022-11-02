@@ -13,3 +13,5 @@ steps:
       - name: reports
         path: /reports
 serviceAccount: 'projects/${_PROJECT_ID}/serviceAccounts/${_SERVICE_ACCOUNT}'        
+options:
+  logging: CLOUD_LOGGING_ONLY
