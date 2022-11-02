@@ -54,7 +54,6 @@ resource "google_organization_iam_member" "scoutsuite_service_account_roles" {
     "roles/iam.securityReviewer",
     "roles/logging.viewer",
     "roles/logging.logWriter",
-    "roles/storage.buckets.create",
     "roles/storage.objects.create"
   ])
   role     = each.key
