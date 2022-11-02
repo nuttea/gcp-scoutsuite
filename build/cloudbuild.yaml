@@ -12,5 +12,4 @@ steps:
     volumes:
       - name: reports
         path: /reports
-substitutions:
-  _SCOUTSUITE_BUCKET: 'projectid_scoutsuite'
+serviceAccount: 'projects/${_PROJECT_ID}/serviceAccounts/${_SERVICE_ACCOUNT}'        

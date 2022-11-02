@@ -74,7 +74,7 @@ module "gcloud_build_image" {
   platform = "linux"
 
   create_cmd_entrypoint  = "gcloud"
-  create_cmd_body        = "builds submit build/ --config=build/cloudbuild.yaml --substitutions=_SCOUTSUITE_BUCKET='${google_storage_bucket.bucket.name}',_SCOPE='${var.scan_scope}' --project ${var.project_id} --timeout=6000s"
+  create_cmd_body        = "builds submit build/ --config=build/cloudbuild.yaml --substitutions=_SCOUTSUITE_BUCKET='${google_storage_bucket.bucket.name}',_SCOPE='${var.scan_scope}',_SERVICE_ACCOUNT='${google_service_account.scoutsuite_service_account.email}',_PROJECT_ID='${var.project_id}' --project ${var.project_id} --timeout=6000s"
 
   module_depends_on = [
     time_sleep.wait_cloudbuild_sa_iam
