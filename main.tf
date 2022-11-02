@@ -57,15 +57,24 @@ resource "google_organization_iam_member" "scoutsuite_service_account_roles" {
     "roles/storage.admin"
   ])
   role     = each.key
-  condition {
-    title       = "Restrict to Scoutsuite bucket"
-    expression  = "resource.type == \"storage.googleapis.com/Bucket\" && resource.name == (\"${var.project_id}-scoutsuite\")"
-  }
+
 }
 
 resource "time_sleep" "wait_cloudbuild_sa_iam" {
   depends_on      = [google_organization_iam_member.scoutsuite_service_account_roles]
   create_duration = "30s"
+}
+
+resource "google_organization_iam_binding" "binding" {
+  org_id = data.google_organization.org.org_id
+  role    = "roles/storage.admin"
+  members = [
+    format("serviceAccount:%s", google_service_account.scoutsuite_service_account.email),
+  ]
+  condition {
+    title       = "Restrict to Scoutsuite bucket"
+    expression  = "resource.type == \"storage.googleapis.com/Bucket\" && resource.name == (\"${var.project_id}-scoutsuite\")"
+  }
 }
 
 # Run the Cloud Build Submit for Scout Suite report generation
