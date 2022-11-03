@@ -2,7 +2,7 @@ steps:
   - name: 'gcr.io/google.com/cloudsdktool/google-cloud-cli:slim'
     id: Install Scout Suite and Generate a report
     entrypoint: 'bash'
-    args: ['-c', './bin/container-install-run-scoutsuite.sh']
+    args: ['-c', 'export SCOPE=${_SCOPE} && ./bin/container-install-run-scoutsuite.sh']
     volumes:
       - name: reports
         path: /reports
@@ -12,5 +12,6 @@ steps:
     volumes:
       - name: reports
         path: /reports
-substitutions:
-  _SCOUTSUITE_BUCKET: 'projectid_scoutsuite'
+serviceAccount: 'projects/${_PROJECT_ID}/serviceAccounts/${_SERVICE_ACCOUNT}'        
+options:
+  logging: CLOUD_LOGGING_ONLY

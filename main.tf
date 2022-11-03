@@ -24,7 +24,6 @@ module "project_services" {
     "iam.googleapis.com", 
     "cloudresourcemanager.googleapis.com",
     "storage.googleapis.com",
-    "containerregistry.googleapis.com",
     "cloudbuild.googleapis.com"
   ]
 
@@ -40,35 +39,42 @@ resource "google_storage_bucket" "bucket" {
   force_destroy = true
 }
 
-resource "google_storage_bucket_iam_binding" "binding" {
-  bucket = google_storage_bucket.bucket.name
-  role = "roles/storage.legacyObjectReader"
-  members = [
-    "allUsers",
-  ]
+# Create Service Account to run Scoutsuite
+
+resource "google_service_account" "scoutsuite_service_account" {
+  account_id   = "${var.scoutsuite_sa}-sa"
+  display_name = "ScoutSuite Service Account"
 }
 
-# Add IAM Permission to cloudbuild default service account
-
-resource "google_organization_iam_member" "cloudbuild_service_account_roles" {
+resource "google_organization_iam_member" "scoutsuite_service_account_roles" {
   org_id  = data.google_organization.org.org_id
-  member   = format("serviceAccount:%s", "${data.google_project.project.number}@cloudbuild.gserviceaccount.com")
+  member   = format("serviceAccount:%s", google_service_account.scoutsuite_service_account.email)
   for_each = toset([
     "roles/viewer",
     "roles/iam.securityReviewer",
     "roles/logging.viewer",
     "roles/logging.logWriter",
-    "roles/storage.objectAdmin"
+    "roles/storage.admin"
   ])
   role     = each.key
-  depends_on = [
-    module.project_services
-  ]
+
 }
 
 resource "time_sleep" "wait_cloudbuild_sa_iam" {
-  depends_on      = [google_organization_iam_member.cloudbuild_service_account_roles]
+  depends_on      = [google_organization_iam_member.scoutsuite_service_account_roles]
   create_duration = "30s"
+}
+
+resource "google_organization_iam_binding" "binding" {
+  org_id = data.google_organization.org.org_id
+  role    = "roles/storage.admin"
+  members = [
+    format("serviceAccount:%s", google_service_account.scoutsuite_service_account.email),
+  ]
+  condition {
+    title       = "Restrict to Scoutsuite bucket"
+    expression  = "resource.type == \"storage.googleapis.com/Bucket\" && resource.name == (\"${var.project_id}-scoutsuite\")"
+  }
 }
 
 # Run the Cloud Build Submit for Scout Suite report generation
@@ -80,14 +86,9 @@ module "gcloud_build_image" {
   platform = "linux"
 
   create_cmd_entrypoint  = "gcloud"
-  create_cmd_body        = "builds submit build/ --config=build/cloudbuild.yaml --substitutions=_SCOUTSUITE_BUCKET='${google_storage_bucket.bucket.name}' --project ${var.project_id} --timeout=6000s"
+  create_cmd_body        = "builds submit build/ --config=build/cloudbuild.yaml --substitutions=_SCOUTSUITE_BUCKET='${google_storage_bucket.bucket.name}',_SCOPE='${var.scan_scope}',_SERVICE_ACCOUNT='${google_service_account.scoutsuite_service_account.email}',_PROJECT_ID='${var.project_id}' --project ${var.project_id} --timeout=6000s"
 
   module_depends_on = [
     time_sleep.wait_cloudbuild_sa_iam
   ]
-}
-
-output "scoutsuite_report_url" {
-  value       = "https://storage.googleapis.com/${google_storage_bucket.bucket.name}/reports/gcp-user-account.html"
-  description = "The generated Scout Suite report url in GCS bucket."
 }
