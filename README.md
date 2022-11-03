@@ -1,13 +1,13 @@
 # GCP Scout Suite example
 
-Run Scout Suite and put report in GCS
+Runs Scout Suite and puts report in GCS bucket
 
 ## GCP Environment setup
 
 Clone this repository
 
 ```sh
-git clone https://github.com/nuttea/gcp-scoutsuite.git
+git clone https://github.com/icraytho/gcp-scoutsuite.git
 cd gcp-scoutsuite
 export WORKING_DIR=$(pwd)
 ```
