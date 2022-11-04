@@ -66,7 +66,8 @@ resource "google_organization_iam_member" "scoutsuite_service_account_roles" {
   member   = format("serviceAccount:%s", google_service_account.scoutsuite_service_account.email)
   for_each = toset([
     "roles/viewer",
-    "roles/iam.securityReviewer"
+    "roles/iam.securityReviewer",
+    "roles/logging.logWriter"
   ])
   role     = each.key
 
