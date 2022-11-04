@@ -66,10 +66,7 @@ resource "google_organization_iam_member" "scoutsuite_service_account_roles" {
   member   = format("serviceAccount:%s", google_service_account.scoutsuite_service_account.email)
   for_each = toset([
     "roles/viewer",
-    "roles/iam.securityReviewer",
-    "roles/logging.viewer",
-    "roles/logging.logWriter",
-    "roles/storage.admin"
+    "roles/iam.securityReviewer"
   ])
   role     = each.key
 
@@ -82,7 +79,7 @@ resource "time_sleep" "wait_cloudbuild_sa_iam" {
 
 resource "google_organization_iam_binding" "binding" {
   org_id = data.google_organization.org.org_id
-  role    = "roles/storage.admin"
+  role    = "roles/storage.objectCreator"
   members = [
     format("serviceAccount:%s", google_service_account.scoutsuite_service_account.email),
   ]
