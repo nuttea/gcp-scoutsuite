@@ -31,7 +31,7 @@ variable "region" {
 
 variable "scoutsuite_sa" {
   description = "The service account for ScoutSuite."
-  default     = "scoutsuite-sa"
+  default     = "scoutsuite"
   type        = string
 }
 
