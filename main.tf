@@ -69,7 +69,7 @@ resource "google_organization_iam_member" "scoutsuite_service_account_roles" {
     "roles/iam.securityReviewer",
     "roles/stackdriver.accounts.viewer",
     "roles/logging.logWriter",
-    "roles/storage.objectsGet"
+    "roles/storage.objects.get"
   ])
   role     = each.key
 
