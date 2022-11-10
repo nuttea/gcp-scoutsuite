@@ -81,10 +81,14 @@ resource "time_sleep" "wait_cloudbuild_sa_iam" {
 
 resource "google_organization_iam_binding" "binding" {
   org_id = data.google_organization.org.org_id
-  role    = "roles/storage.objectCreator"
   members = [
     format("serviceAccount:%s", google_service_account.scoutsuite_service_account.email),
   ]
+  for_each = toset([
+    "roles/storage.objectCreator",
+    "roles/storage.objects.get"
+  ])
+  role     = each.key
   condition {
     title       = "Restrict to Scoutsuite bucket"
     expression  = "resource.type == \"storage.googleapis.com/Bucket\" && resource.name == (\"${var.project_id}-scoutsuite\")"
