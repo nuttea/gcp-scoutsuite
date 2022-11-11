@@ -75,7 +75,7 @@ resource "google_organization_iam_member" "scoutsuite_service_account_roles" {
 }
 
 resource "time_sleep" "wait_cloudbuild_sa_iam" {
-  depends_on      = [google_organization_iam_member.scoutsuite_service_account_roles]
+  depends_on      = [google_organization_iam_binding.binding]
   create_duration = "30s"
 }
 
