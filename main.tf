@@ -1,3 +1,18 @@
+# Copyright 2022 Ian Craythorne
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 provider "google" {
   project = var.project_id
   region  = var.region
@@ -52,29 +67,30 @@ resource "google_organization_iam_member" "scoutsuite_service_account_roles" {
   for_each = toset([
     "roles/viewer",
     "roles/iam.securityReviewer",
-    "roles/logging.viewer",
-    "roles/logging.logWriter",
-    "roles/storage.admin"
+    "roles/stackdriver.accounts.viewer",
+    "roles/logging.logWriter"
   ])
   role     = each.key
 
 }
 
-resource "time_sleep" "wait_cloudbuild_sa_iam" {
-  depends_on      = [google_organization_iam_member.scoutsuite_service_account_roles]
-  create_duration = "30s"
-}
-
 resource "google_organization_iam_binding" "binding" {
   org_id = data.google_organization.org.org_id
-  role    = "roles/storage.admin"
+  role    = "roles/storage.objectCreator"
   members = [
     format("serviceAccount:%s", google_service_account.scoutsuite_service_account.email),
   ]
   condition {
     title       = "Restrict to Scoutsuite bucket"
-    expression  = "resource.type == \"storage.googleapis.com/Bucket\" && resource.name == (\"${var.project_id}-scoutsuite\")"
+    expression  = "resource.name.startsWith(\"projects/_/buckets/${google_storage_bucket.bucket.name}\")"
   }
+  
+  depends_on      = [google_organization_iam_binding.binding]
+}
+
+resource "time_sleep" "wait_cloudbuild_sa_iam" {
+  depends_on      = [google_organization_iam_member.scoutsuite_service_account_roles]
+  create_duration = "60s"
 }
 
 # Run the Cloud Build Submit for Scout Suite report generation
@@ -86,7 +102,7 @@ module "gcloud_build_image" {
   platform = "linux"
 
   create_cmd_entrypoint  = "gcloud"
-  create_cmd_body        = "builds submit build/ --config=build/cloudbuild.yaml --substitutions=_SCOUTSUITE_BUCKET='${google_storage_bucket.bucket.name}',_SCOPE='${var.scan_scope}',_SERVICE_ACCOUNT='${google_service_account.scoutsuite_service_account.email}',_PROJECT_ID='${var.project_id}' --project ${var.project_id} --timeout=6000s"
+  create_cmd_body        = "builds submit build/ --config=build/cloudbuild.yaml --substitutions=_SCOUTSUITE_BUCKET='${google_storage_bucket.bucket.name}',_SCOPE='${var.scan_scope}',_SERVICE_ACCOUNT='${google_service_account.scoutsuite_service_account.email}',_PROJECT_ID='${var.project_id}' --project ${var.project_id} --timeout=12000s"
 
   module_depends_on = [
     time_sleep.wait_cloudbuild_sa_iam
