@@ -90,7 +90,7 @@ resource "google_organization_iam_binding" "binding" {
 
 resource "time_sleep" "wait_cloudbuild_sa_iam" {
   depends_on      = [google_organization_iam_member.scoutsuite_service_account_roles]
-  create_duration = "30s"
+  create_duration = "60s"
 }
 
 # Run the Cloud Build Submit for Scout Suite report generation
