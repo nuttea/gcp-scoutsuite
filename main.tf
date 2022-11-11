@@ -87,7 +87,7 @@ resource "google_organization_iam_binding" "binding" {
   ]
   condition {
     title       = "Restrict to Scoutsuite bucket"
-    expression  = "resource.name.startsWith(projects/_/buckets/${var.project_id}-scoutsuite)"
+    expression  = "resource.name.startsWith(\"projects/_/buckets/${google_storage_bucket.bucket.name}\")"
   }
 }
 
