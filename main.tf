@@ -74,11 +74,6 @@ resource "google_organization_iam_member" "scoutsuite_service_account_roles" {
 
 }
 
-resource "time_sleep" "wait_cloudbuild_sa_iam" {
-  depends_on      = [google_organization_iam_binding.binding]
-  create_duration = "30s"
-}
-
 resource "google_organization_iam_binding" "binding" {
   org_id = data.google_organization.org.org_id
   role    = "roles/storage.objectCreator"
@@ -89,6 +84,13 @@ resource "google_organization_iam_binding" "binding" {
     title       = "Restrict to Scoutsuite bucket"
     expression  = "resource.name.startsWith(\"projects/_/buckets/${google_storage_bucket.bucket.name}\")"
   }
+  
+  depends_on      = [google_organization_iam_binding.binding]
+}
+
+resource "time_sleep" "wait_cloudbuild_sa_iam" {
+  depends_on      = [google_organization_iam_member.scoutsuite_service_account_roles]
+  create_duration = "30s"
 }
 
 # Run the Cloud Build Submit for Scout Suite report generation
@@ -100,7 +102,7 @@ module "gcloud_build_image" {
   platform = "linux"
 
   create_cmd_entrypoint  = "gcloud"
-  create_cmd_body        = "builds submit build/ --config=build/cloudbuild.yaml --substitutions=_SCOUTSUITE_BUCKET='${google_storage_bucket.bucket.name}',_SCOPE='${var.scan_scope}',_SERVICE_ACCOUNT='${google_service_account.scoutsuite_service_account.email}',_PROJECT_ID='${var.project_id}' --project ${var.project_id} --timeout=6000s"
+  create_cmd_body        = "builds submit build/ --config=build/cloudbuild.yaml --substitutions=_SCOUTSUITE_BUCKET='${google_storage_bucket.bucket.name}',_SCOPE='${var.scan_scope}',_SERVICE_ACCOUNT='${google_service_account.scoutsuite_service_account.email}',_PROJECT_ID='${var.project_id}' --project ${var.project_id} --timeout=12000s"
 
   module_depends_on = [
     time_sleep.wait_cloudbuild_sa_iam
